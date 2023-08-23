@@ -1,0 +1,10 @@
+{
+  "name": "rosettes",
+  "version": "1.0.0",
+  "scripts": {
+    "saxi": "saxi"
+  },
+  "dependencies": {
+    "saxi": "^0.15.0"
+  }
+}
