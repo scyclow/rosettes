@@ -155,7 +155,6 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
 
   ///// LINES
   } else if (strategy === 2) {
-    const dashPadding = 61
 
     drawLineRosette(x, y, lineMin, maxRad*1.5, gears, {
       stroke: colorFn(),
@@ -164,7 +163,6 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
 
   ///// GRID
   } else if (strategy === 3) {
-    const dashPadding = 61
 
     drawLineRosette(x, y, lineMin, maxRad*1.5, gears, {
       stroke: colorFn(),
@@ -213,13 +211,12 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
       const p = svg.drawPath(x, y, rosettePath, {stroke: colorFn()})
     })
 
+  /// POINTY IN/OUT
   } else if ([6, 7].includes(strategy)) {
     const basePoints = 28
     const repeats = 1
     const layers = maxRad/32
     const layerSpace = lineMin*0.75
-
-    console.log(layers, maxRad)
 
     drawCurveyRosette(
       x, y, layerSpace,
@@ -229,6 +226,7 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
       {gearModifier, colorFn}
     )
 
+  /// CURVEY/NUMISMATIC
   } else if ([8, 9].includes(strategy)) {
     const basePoints = 102
     const repeats = strategy === 8 ? 1 : 3
@@ -272,8 +270,17 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
       //   stroke: colorFn(1),
       //   rotation: spiralFn(0),
       // })
+
+  /// SHAPES
   } else if ([10, 11].includes(strategy)) {
-    let pointMult = rnd(1, 4)
+    let pointMult = prb(0.5) ? rnd(1, 4) : 1
+    const drawFn = sample([
+      (_x, _y, pm, t) => svg.drawCircle(x+_x, y+_y, 5*pm, {stroke: colorFn(t)}),
+      (_x, _y, pm, t) => svg.drawRect(x+_x-5*pm, y+_y-5*pm, 5*pm*2, 5*pm*2, {stroke: colorFn(t)}),
+      (_x, _y, pm, t) => drawSingleSymbol(_x+x, _y+y, 'rosette', 0.75),
+      // (_x, _y, pm, t) => drawSingleSymbol(_x+x, _y+y, 'star', 0.75),
+      // (_x, _y, pm, t) => drawSingleSymbol(_x+x, _y+y, 'heart', 0.75),
+    ])
 
     times(2*maxRad/lineMin, t => {
       const rad = t*lineMin/2 + lineMin
@@ -283,10 +290,97 @@ function drawRosette(x, y, maxRad, strategy, gears, { gearModifier, spiralFn, co
       const pointCount = (28 + t*10)/pointMult
       const points = getRosettePoints(rad*1.5, gears, 1, 0, 0, pointCount/2)
 
-      points.forEach(([_x, _y]) => svg.drawCircle(x+_x, y+_y, 5*pointMult, {stroke: colorFn(t)}))
-      // points.forEach(([_x, _y]) => svg.drawRect(x+_x, y+_y, 5*pointMult*2, 5*pointMult*2, {stroke: colorFn(t)}))
+      points.forEach(([_x, _y]) => drawFn(_x, _y, pointMult, t))
     })
 
+  /// RIBBONS
+  } else if (strategy === 12) {
+    const pointCount = 100 * rndint(1, 4)
+
+    times(Math.floor(2*maxRad/lineMin), t => {
+      const rad = t*lineMin/2 + lineMin
+      const prevRad = (t-1)*lineMin/2 + lineMin
+
+      if (t%2) {
+        drawLineRosette(x, y, prevRad*1.5, rad*1.5, gears, {
+          stroke: colorFn(),
+          pointCount
+        })
+      }
+
+      const rosettePath = getRosettePath(
+        rad,
+        gears
+      )
+
+      svg.drawPath(x, y, rosettePath, {
+        stroke: colorFn(t),
+      })
+    })
+
+  /// BLOCKS
+  } else if (strategy === 13) {
+    // const pointMult = 1//rndint(1, 4)
+    const pointCount = 300
+
+
+    times(Math.floor(2*maxRad/lineMin), t => {
+
+      // const pointCount = (t%2 ? (28 + t*10)/pointMult : (28 + (t+1)*10)/pointMult)+1
+
+
+
+      const rad = t*lineMin/2 + lineMin
+      const prevRad = (t-1)*lineMin/2 + lineMin
+
+      const points = getRosettePoints(rad*1.5, gears, 1, 0, 0, pointCount/2)
+      const prevPoints = getRosettePoints(prevRad*1.5, gears, 1, 0, 0, pointCount/2)
+
+      points.forEach((p, i) => {
+        if (t%2) {
+          svg.drawLine(p[0]+x, p[1]+y, prevPoints[i][0]+x, prevPoints[i][1]+y)
+        }
+
+        if (i%2==0 && points[i+1]) {
+          svg.drawLine(p[0]+x, p[1]+y, points[i+1][0]+x, points[i+1][1]+y)
+        }
+      })
+
+
+
+
+
+
+
+
+      // if (t%2) {
+      //   drawLineRosette(x, y, prevRad*1.5, rad*1.5, gears, {
+      //     stroke: colorFn(),
+      //     pointCount
+      //   })
+      // }
+
+      // times(pointCount/2, p => {
+      //   const rosettePath = getRosettePath(
+      //     rad,
+      //     gears,
+      //     1/pointCount,
+      //     0,
+      //     p*2/pointCount
+      //   )
+
+      //   svg.drawPath(x, y, rosettePath, {
+      //     stroke: colorFn(t),
+      //   })
+      // })
+
+
+
+
+      // svg.drawPath(x, y, rosettePath, {
+      //   stroke: colorFn(t),
+      // })
+    })
   }
 
 }
@@ -321,6 +415,8 @@ function drawNewRosetteWithFeatures(x, y, maxRad) {
     [10, 9], // numismatic
     [2, 10], // circles
     [1, 11], // heterocircles
+    [5, 12], // ribbons
+    [5, 12], // blocks
   )
 
   const hasShadows = prb(0.3)
@@ -426,37 +522,41 @@ times(grid, i => {
   //     })
   //   })
 
-  //   times(40, t => {
-  //     const rad = t*lineMin + lineMin
-  //     const rosettePath = getRosettePath(
-  //       rad,
-  //       gears,
-  //       0.25,
-  //       0,
-  //       1-0.265
-  //     )
+    // times(40, t => {
+    //   const rad = t*lineMin + lineMin
+    //   const rosettePath = getRosettePath(
+    //     rad,
+    //     gears,
+    //     0.25,
+    //     0,
+    //     1-0.265
+    //   )
 
-  //     svg.drawPath(C*2, 0, rosettePath, {
-  //       stroke: '#f00',
-  //     })
-  //   })
+    //   svg.drawPath(C*2, 0, rosettePath, {
+    //     stroke: '#f00',
+    //   })
+    // })
 
-  //   times(40, t => {
-  //     const rad = t*lineMin + lineMin
-  //     const rosettePath = getRosettePath(
-  //       rad,
-  //       gears,
-  //       0.25,
-  //       0,
-  //       0.25
-  //     )
+    // times(40, t => {
+    //   const rad = t*lineMin + lineMin
+    //   const rosettePath = getRosettePath(
+    //     rad,
+    //     gears,
+    //     0.25,
+    //     0,
+    //     0.25
+    //   )
 
-  //     svg.drawPath(0, C*2, rosettePath, {
-  //       stroke: '#f00',
-  //     })
-  //   })
+    //   svg.drawPath(0, C*2, rosettePath, {
+    //     stroke: '#f00',
+    //   })
+    // })
+    // times(svg.w/40, x => svg.drawLine((x+1)*40, 0, 0, (x+1)*40, {stroke: pen.yellow}))
+    // times(svg.w/40, x => svg.drawLine((x+1)*40, svg.h, svg.w, (x+1)*40, {stroke: pen.yellow}))
 
     drawNewRosetteWithFeatures(x, y, 800/grid - ((grid-1) * 10 ) )
+
+
 
 
 

@@ -8,7 +8,7 @@ const pen = {
   yellow: '#fdb603',
   lime: '#81c616',
   green: '#047b41',
-  teal: '#14c1e2',
+  teal: '#00b1d3',
   blue: '#0303a7',
   purple: '#8729cc',
   magenta: '#d31479',
