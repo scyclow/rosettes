@@ -113,7 +113,7 @@
           var source = serializer.serializeToString(svg);
           source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
           let a = document.createElement("a");
-          a.href = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);;
+          a.href = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
           a.download = `${tokenData.hash}.svg`;
           document.body.appendChild(a);
           a.click();

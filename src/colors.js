@@ -3,12 +3,16 @@
 const pen = {
   black: '#000',
   white: '#fff',
-  red: '#f32e14',
-  blue: '#1f1dcb',
-  pink: '#f36ee8',
-  orange: '#fa6405',
-  green: '#007344',
-  teal: '#00b0d9'
+  red: '#e21432',
+  orange: '#ff6d07',
+  yellow: '#fdb603',
+  lime: '#81c616',
+  green: '#047b41',
+  teal: '#14c1e2',
+  blue: '#0303a7',
+  purple: '#8729cc',
+  magenta: '#d31479',
+  pink: '#f92c88',
 }
 
 const penColorsDark = [

@@ -30,6 +30,7 @@ const sample = (a) => a[int(rnd(a.length))]
 const exists = x => !!x
 const last = a => a[a.length-1]
 const noop = () => {}
+const iden = x => x
 
 function times(t, fn) {
   const out = []

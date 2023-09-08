@@ -61,10 +61,11 @@ class SVG {
     this.svg.setAttribute('viewBox', '0 0 ' + this. w + ' ' + this. h)
 
 
-    this.chaos = chance(
-      [97, 0],
-      [3, rnd(15, 64)],
-    )
+    this.chaos = 0
+    // chance(
+    //   [97, 0],
+    //   [3, rnd(15, 64)],
+    // )
 
     // append the document bounds
     const bounds = document.createElementNS(__ns, 'path')

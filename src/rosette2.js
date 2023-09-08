@@ -9,13 +9,13 @@ function generateGears(gearsN=8, rotationMax=15, radia=0.1, startFn=returnOne) {
       rotation: 1,
       radia: 1,
       radiaStart: 1,
-      radiaAdj: (p, i, _x, _y, baseRadius, prevRadius) => i ? 1 : (p%2 ? 1 : prevRadius/baseRadius),
+      radiaAdj: returnOne//(p, i, _x, _y, baseRadius, prevRadius) => i ? 1 : (p%2 ? 1 : prevRadius/baseRadius),
     },
     ...times(gearsN - 1, g => ({
       rotation: int(rnd(-rotationMax, rotationMax)),
       radia: rnd(0, radia),
       radiaStart: startFn(),
-      radiaAdj: (p, i, _x, _y, baseRadius, prevRadius) => i ? 1 : (p%2 ? 1 : prevRadius/baseRadius),
+      radiaAdj: returnOne//(p, i, _x, _y, baseRadius, prevRadius) => i ? 1 : (p%2 ? 1 : prevRadius/baseRadius),
     }))
   ]
 
@@ -27,7 +27,7 @@ function generateGears(gearsN=8, rotationMax=15, radia=0.1, startFn=returnOne) {
 }
 
 
-function createSpirographFn(baseRadius, prevRadius, gears) {
+function createSpirographFn(baseRadius, gears, offset=0) {
   let c = 0
   return (progress, p, increase=0) => gears.reduce(([_x, _y], gear, i) => {
     let a = 0
@@ -37,9 +37,12 @@ function createSpirographFn(baseRadius, prevRadius, gears) {
     } else {
       a = c* 0.5
     }
+
+    const angle = (progress + gear.radiaStart % 1) * gear.rotation
+    const radius = (1+a)* baseRadius * gear.radia * gear.radiaAdj(p, i, _x, _y, baseRadius)
     return getXYRotation(
-      (progress + gear.radiaStart % 1) * TWO_PI * gear.rotation,
-      (1+a)* baseRadius * gear.radia * gear.radiaAdj(p, i, _x, _y, baseRadius, prevRadius),
+      angle * TWO_PI,
+      radius,
       _x,
       _y
     )
@@ -49,29 +52,67 @@ function createSpirographFn(baseRadius, prevRadius, gears) {
   )
 }
 
-function getRosettePath(rad, gears, cycles=1, spacing=0, startOffset=0) {
-  const pointCount = 900
-  const spirographFn = createSpirographFn(rad, rad, gears)
-  const points = times(
-    (cycles*pointCount+1),
+function getRosettePoints(rad, gears, cycles=1, spacing=0, startOffset=0, pointCount=900) {
+  const spirographFn = createSpirographFn(rad, gears)
+
+  return times(
+    (cycles*pointCount+2),
     p => {
       const _p = p + (pointCount*startOffset)
       return spirographFn(
-        _p/(pointCount+1),
+        _p/(pointCount+2),
         _p,
         spacing*_p/pointCount
       )
     }
   )
-  let d = `M ${points[0][0]} ${points[0][1]} `
-  for (let i=0; i<points.length; i++) {
+}
+
+function getRosettePath(rad, gears, cycles=1, spacing=0, startOffset=0, pointCount=900, wavy=false) {
+  const spirographFn = createSpirographFn(rad, gears)
+
+  const points = getRosettePoints(rad, gears, cycles, spacing, startOffset, pointCount)
+
+  const startIx = wavy ? points.length-1 : 0
+
+  let d = `M ${points[startIx][0]} ${points[startIx][1]} ${wavy ? 'Q' : ''}`
+
+  for (let i=0; i<points.length; i+=1) {
     d += ` ${points[i][0]},${points[i][1]}`
   }
-  if (cycles === 1) d += ` ${points[0][0]},${points[0][1]}`
-  // console.log(d)
+
+  if (cycles === 1 && !wavy) d += ` ${points[0][0]},${points[0][1]}`
+
 
   return d
 }
+
+// function getRosettePath(rad, gears,x, cycles=1, spacing=0, startOffset=0, pointCount=900) {
+//   const spirographFn = createSpirographFn(rad, gears)
+
+//   const points = times(
+//     (cycles*pointCount+2),
+//     p => {
+//       const _p = p + (pointCount*startOffset)
+//       return spirographFn(
+//         _p/(pointCount+2),
+//         _p,
+//         spacing*_p/pointCount
+//       )
+//     }
+//   )
+
+//   let d = `M ${points[0][0]} ${points[0][1]} `
+//   // let d = `M ${points[points.length-1][0]} ${points[points.length-1][1]} Q`
+
+//   for (let i=0; i<points.length; i+=1) {
+//     d += ` ${points[i][0]},${points[i][1]}`
+//   }
+//   if (cycles === 1) d += ` ${points[0][0]},${points[0][1]}`
+
+
+//   return d
+// }
 
 const shadowColor = sample(penColors)
 
@@ -105,8 +146,8 @@ function drawLineRosette(x, y, minRad, maxRad, gears, args={}) {
   if (args.shadow) drawLineRosette(x, y, minRad, maxRad, gears, { stroke: shadowColor, ...args, shadow: false })
   const pointCount = args.pointCount || 100
 
-  const innerSpirographFn = createSpirographFn(minRad, minRad, gears)
-  const outterSpirographFn = createSpirographFn(maxRad, maxRad, gears)
+  const innerSpirographFn = createSpirographFn(minRad, gears)
+  const outterSpirographFn = createSpirographFn(maxRad, gears)
   const innerPoints = times(pointCount, p => innerSpirographFn(p/pointCount, p))
   const outterPoints = times(pointCount, p => outterSpirographFn(p/pointCount, p))
   innerPoints.forEach(([x1, y1], i) => {
