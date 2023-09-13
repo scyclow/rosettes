@@ -25,7 +25,7 @@ function rnd(mn, mx) {
 
 const rndint = (mn, mx) => int(rnd(mn, mx))
 const prb = x => rnd() < x
-const posOrNeg = () => prb(0.5) ? 1 : -1
+const posOrNeg = (x=1) => x * (prb(0.5) ? 1 : -1)
 const sample = (a) => a[int(rnd(a.length))]
 const exists = x => !!x
 const last = a => a[a.length-1]
